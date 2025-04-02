@@ -37,46 +37,35 @@ terraform-serverless-etl/
 
 ---
 
-## 🌐 Arquitectura general
+## 🧠 Arquitectura del proyecto
 
-```mermaid
-flowchart TD
-  %% Estilo común
-  classDef aws fill:#ffffff,stroke:#d1d5db,color:#111827,font-size:14px,font-family:sans-serif,rx:6,ry:6;
+Este proyecto implementa una arquitectura **serverless** en AWS para extraer datos de reportes de Mercado Pago, almacenarlos en un data lake y habilitar su consulta analítica. La arquitectura sigue un enfoque modular, con separación entre extracción, almacenamiento y consulta.
 
-  %% Secciones lógicas
-  subgraph Entrada["🔐 Entrada"]
-    API["🟪 API Gateway"]
-  end
+### 🔐 Entrada y disparo
 
-  subgraph Procesamiento["⚙️ Procesamiento"]
-    LAMBDA["🟨 Lambda"]
-  end
+- **API Gateway** expone un endpoint HTTP `POST` que activa el proceso.
+- La autenticación del token de Mercado Pago se gestiona a través de **Secrets Manager**, evitando exponer credenciales en el código.
 
-  subgraph Almacenamiento["📦 Almacenamiento"]
-    RAW["🟦 S3 Bucket raw"]
-    PROCESSED["🟦 S3 Bucket processed"]
-  end
+### ⚙️ Procesamiento
 
-  subgraph Catálogo["🧠 Catálogo y Consulta"]
-    CRAWLER["🟪 Glue Crawler Detecta esquema"]
-    GLUE["📚 Glue Catalog DB"]
-    ATHENA["🟦 Athena SQL queries"]
-  end
+- Una función **AWS Lambda** realiza lo siguiente:
+  - Consulta la API de Mercado Pago.
+  - Descarga el último reporte disponible en formato CSV.
+  - Lo guarda en dos ubicaciones del bucket de S3:
+    - `/raw/`: copia sin transformar.
+    - `/processed/`: copia destinada al análisis (opcionalmente convertida a Parquet).
+  - Lanza un **Glue Crawler** para actualizar el catálogo de datos.
 
-  %% Flujo
-  API --> LAMBDA
-  LAMBDA --> RAW
-  LAMBDA --> PROCESSED
-  PROCESSED --> CRAWLER
-  CRAWLER --> GLUE
-  GLUE --> ATHENA
+### 🗃️ Almacenamiento
 
-  %% Estética
-  class API,LAMBDA,RAW,PROCESSED,CRAWLER,GLUE,ATHENA aws;
-```
+- Un único bucket de **Amazon S3** actúa como data lake, estructurado por carpetas:
+  - `raw/`: datos originales sin procesar.
+  - `processed/`: datos listos para análisis.
 
----
+### 🧹 Catalogación y consulta
+
+- **Glue Crawler** detecta el esquema de los archivos en `/processed/` y actualiza una base de datos del **Glue Data Catalog**.
+- Luego, **Amazon Athena** puede consultar estos datos usando SQL estándar.
 
 ## ⚙️ Despliegue
 
@@ -87,3 +76,4 @@ terraform apply
 
 > ⚠️ Asegurate de configurar previamente el Secret en AWS Secrets Manager con tu token de acceso a la API.
 
+---
