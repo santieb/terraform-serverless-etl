@@ -77,3 +77,23 @@ terraform apply
 > ⚠️ Asegurate de configurar previamente el Secret en AWS Secrets Manager con tu token de acceso a la API.
 
 ---
+
+---
+
+## 💰 Estimación aproximada de costos
+
+Esta arquitectura es **serverless**, lo que significa que **solo se paga por el uso real**. Es ideal para proyectos pequeños o medianos por su **bajo costo y alta escalabilidad**.
+
+| Servicio             | Costo estimado mensual (uso moderado) | Detalles                                                                 |
+|----------------------|----------------------------------------|--------------------------------------------------------------------------|
+| **AWS Lambda**       | $0 – $1 USD                            | 1M invocaciones gratis por mes. Se paga solo por tiempo de cómputo.     |
+| **Amazon S3**        | $0.10 – $1 USD                         | Depende del volumen almacenado y solicitudes. Se recomienda usar Parquet. |
+| **AWS Glue Crawler** | $1 – $5 USD                            | Se cobra por DPU/hora. Limitar escaneos para controlar costos.          |
+| **Glue Data Catalog**| $0 – $1 USD                            | 1M objetos gratis/mes. Cobros adicionales si se excede.                 |
+| **Amazon Athena**    | $0.002 – $0.05 USD por consulta        | Consultas optimizadas con particiones y formatos columnar.              |
+| **Secrets Manager**  | $0.40 USD por secreto                  | Coste mensual por secreto almacenado.                                   |
+
+### 💸 Estimación total mensual: **entre $2 y $8 USD**
+
+> 💡 *Consejo:* Usar formatos columnar (como Parquet), particiones y ejecuciones eficientes ayuda a mantener los costos bajos. También podés usar AWS Cost Explorer y presupuestos para monitorear gastos.
+
